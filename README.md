@@ -2,7 +2,7 @@
 
 Welcome to the "Telco Customer Churn Prediction" repository, where we use Classification and Regression Trees (CART) models to anticipate customer attrition in the telecommunications industry. 
 
-The data set for this classification problem is taken from Kaggle. You can follow this [link](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)to download the dataset.
+The data set for this classification problem is taken from Kaggle. You can follow this [link](https://www.kaggle.com/datasets/blastchar/telco-customer-churn) to download the dataset.
 
 Also following feature informations are taken from [Towards Data Science](https://towardsdatascience.com/machine-learning-case-study-telco-customer-churn-prediction-bc4be03c9e1d) 
 
