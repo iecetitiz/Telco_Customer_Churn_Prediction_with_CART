@@ -12,7 +12,7 @@ By inspecting the columns and their unique values, a general understanding about
 ### Classification labels
 
 Churn — Whether the customer churned or not (Yes or No)
-## Customer services booked
+### Customer services booked
 
 * PhoneService — Whether the customer has a phone service (Yes, No)
 * MultipleLines — Whether the customer has multiple lines (Yes, No, No phone service)
@@ -23,7 +23,7 @@ Churn — Whether the customer churned or not (Yes or No)
 * TechSupport — Whether the customer has tech support (Yes, No, No internet service)
 * StreamingTV — Whether the customer has streaming TV (Yes, No, No internet service)
 * StreamingMovies — Whether the customer has streaming movies (Yes, No, No internet service)
-## Customer account information
+### Customer account information
 
 * Tenure — Number of months the customer has stayed with the company
 * Contract — The contract term of the customer (Month-to-month, One year, Two year)
@@ -31,7 +31,7 @@ Churn — Whether the customer churned or not (Yes or No)
 * PaymentMethod — The customer’s payment method (Electronic check, Mailed check, Bank transfer (automatic), Credit card (automatic))
 * MonthlyCharges — The amount charged to the customer monthly
 * TotalCharges — The total amount charged to the customer
-## Customers demographic information
+### Customers demographic information
 
 * customerID — Customer ID
 * Gender — Whether the customer is a male or a female
