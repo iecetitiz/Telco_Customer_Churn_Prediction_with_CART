@@ -9,7 +9,7 @@ Also following feature informations are taken from [Towards Data Science](https:
 ## Meaning of Features
 By inspecting the columns and their unique values, a general understanding about the features can be build. The features can also be clustered into different categories:
 
-## Classification labels
+### Classification labels
 
 Churn — Whether the customer churned or not (Yes or No)
 ## Customer services booked
