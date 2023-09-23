@@ -4,12 +4,12 @@ Created on Fri Sep 22 12:24:42 2023
 
 @author: iecet
 """
-
+# Importing libraries
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split, cross_validate
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score
+from sklearn.model_selection import train_test_split, cross_validate, GridSearchCV
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 
 
 df = pd.read_csv("C:/datasets/machine_learning/Telco-Customer-Churn.csv") 
@@ -96,7 +96,7 @@ print(f"Accuracy: {accuracy:.2f}") #0.71
 #Classification Report (provides precision, recall, F1-score, and support for each class):
 print(classification_report(y_test, y_pred))
 
-#precision    recall  f1-score   
+#       precision    recall  f1-score   
 
 #0       0.81      0.80      0.80      
 #1       0.45      0.47      0.46 
@@ -105,20 +105,6 @@ print(classification_report(y_test, y_pred))
 # AUC score
 y_prob = cart_classifier.predict_proba(X_test)[:, 1]
 roc_auc_score(y_test, y_prob)
-
-
-
-# Predicting 
-train_pred = cart_classifier.predict(X_train)
-print(classification_report(y_train, train_pred))
-
-# Following are the predictions for train set, it's clear that there is an overfitting issue
-#              precision    recall  f1-score   
-
-       #0       1.00      1.00      1.00      
-       #1       1.00      1.00      1.00      
-
-#accuracy                           1.00 
 
 # Cross Validation Scores
 
@@ -129,6 +115,82 @@ cv_results = cross_validate(cart_classifier,
 
 cv_accuracy = cv_results["test_accuracy"]
 cv_f1 = cv_results["test_f1"]
+
+# Predicting for train set
+train_pred = cart_classifier.predict(X_train)
+print(classification_report(y_train, train_pred))
+
+# Followings are the results of the predictions for train set, it's clear that there is an overfitting issue
+#              precision    recall  f1-score   
+
+       #0       1.00      1.00      1.00      
+       #1       1.00      1.00      1.00      
+
+#accuracy                           1.00 
+
+
+################################################
+# Hyperparameter Optimization with GridSearchCV
+################################################
+
+#Taking parameters for hyperparameter optimization
+cart_classifier.get_params()
+
+#Defining the hyperparameter grid to search over
+param_grid = {
+    'max_depth': range(1, 11),
+    'min_samples_split': range(2, 20),
+}
+
+# Creating the GridSearchCV object and fitting the GridSearchCV object to train data:
+cart_best_grid = GridSearchCV(cart_classifier,
+                              param_grid, 
+                              cv = 5,
+                              n_jobs = -1,
+                              verbose=True
+                              ).fit(X, y)
+
+# Getting the best hyperparameters
+best_params = cart_best_grid.best_params_
+
+# max_depth: 6
+#min_samples_split: 8
+
+################################################
+# Final Model
+################################################
+
+
+cart_final = cart_classifier.set_params(**cart_best_grid.best_params_).fit(X, y)
+
+cv_results = cross_validate(cart_final,
+                            X, y,
+                            cv=5,
+                            scoring=["accuracy", "f1", "roc_auc"])
+
+
+acc = cv_results['test_accuracy']
+
+f1 = cv_results['test_f1']
+
+roc_auc= cv_results['test_roc_auc']
+
+
+
+# It can be seen that the precision,recall and f1-score values have increased significantly after optimization
+y_predicto = cart_classifier.predict(X_test)
+print(classification_report(y_test, y_predicto))
+
+
+#              precision    recall  f1-score   
+
+       #0       0.86      0.91      0.88      
+       #1       0.70      0.59      0.64       
+
+#accuracy                           0.83
+
+
+
 
 
 
