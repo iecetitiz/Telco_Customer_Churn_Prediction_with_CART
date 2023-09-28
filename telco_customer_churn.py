@@ -6,6 +6,7 @@ Created on Fri Sep 22 12:24:42 2023
 """
 # Importing libraries
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split, cross_validate, GridSearchCV
@@ -16,17 +17,22 @@ df = pd.read_csv("C:/datasets/machine_learning/Telco-Customer-Churn.csv")
 
 df.info()
 
-# 'TotalCharges' column has empty values
-empty_total_charges = df[df['TotalCharges'] == ' ']
+#Handling missing values
+#If errors = ‘coerce’, then invalid parsing " " will be set as NaN.
+df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
+
+# Rows that 'TotalCharges' column has empty values
+empty_total_charges = df[df["TotalCharges"].isnull()]
+
+#Converting "Churn" column into numeric type
+df["Churn"] = df["Churn"].apply(lambda x : 1 if x == "Yes" else 0)
 
 # New customers are the reason for these empty values
 new_customers = df[df['tenure'] == 0]
 
 # Replacing empty values with '0' in 'TotalCharges' column
-df['TotalCharges'].replace(' ', 0, inplace=True)
+df["TotalCharges"].replace(np.nan, 0, inplace = True)
 
-# 'TotalCharges' column is object type but actual type is float
-df['TotalCharges'] = df['TotalCharges'].astype(float)
 
 
 # Observing null values
@@ -48,6 +54,13 @@ def grab_col_names(dataframe, cat_th=10,  car_th=20):
 
     num_cols = [col for col in dataframe.columns if dataframe[col].dtypes in ["int64", "float64"]]
     num_cols = [col for col in num_cols if col not in cat_cols]
+    
+    print(f"Observations: {dataframe.shape[0]}") # satır
+    print(f"Variables: {dataframe.shape[1]}") # değişken
+    print(f'cat_cols: {len(cat_cols)}') # kategorik degişken
+    print(f'num_cols: {len(num_cols)}')
+    print(f'cat_but_car: {len(cat_but_car)}')
+    print(f'num_but_cat: {len(num_but_cat)}')
 
     return cat_cols, num_cols, cat_but_car
 
@@ -64,17 +77,48 @@ def cat_summary(dataframe, col_name):
 for col in cat_cols:
     cat_summary(df, col)
     
-# Scaling numeric columns
-standart_sclaler = StandardScaler()
-df[num_cols] =standart_sclaler.fit_transform(df[num_cols]) 
+#Handling outliers
+    
+def outlier_thresholds(dataframe, col_name, q1=0.05, q3=0.95):
+   quartile1 = dataframe[col_name].quantile(q1)
+   quartile3 = dataframe[col_name].quantile(q3)
+   interquantile_range = quartile3 - quartile1
+   up_limit = quartile3 + 1.5 * interquantile_range
+   low_limit = quartile1 - 1.5 * interquantile_range
+   return low_limit, up_limit
+
+def check_outlier(dataframe, col_name):
+    low_limit, up_limit = outlier_thresholds(dataframe, col_name)
+    if dataframe[(dataframe[col_name] > up_limit) | (dataframe[col_name] < low_limit)].any(axis=None):
+        return True
+    else:
+        return False
+
+def replace_with_thresholds(dataframe, variable, q1=0.05, q3=0.95):
+    low_limit, up_limit = outlier_thresholds(dataframe, variable, q1=0.05, q3=0.95)
+    dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
+    dataframe.loc[(dataframe[variable] > up_limit), variable] = up_limit
+    
+for col in num_cols:
+    print(col, check_outlier(df, col))
+    if check_outlier(df, col):
+        replace_with_thresholds(df, col)
+        
+#Removing the "Churn" column from cat_cols    
+cat_cols = [col for col in cat_cols if col not in ["Churn"]]
 
 # One Hot encoding
-df_encoded = pd.get_dummies(df, columns=cat_cols, drop_first=True)
+def one_hot_encoder(dataframe, categorical_cols, drop_first=False):
+    dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
+    return dataframe
+
+#Creating dff dataframe with encoded columns
+dff = pd.get_dummies(df, columns=cat_cols, drop_first=True)
 
 
 # Preparing data: Feature columns: X and a target column y
-X = df_encoded.drop(["customerID", "Churn_Yes"], axis = 1)
-y = df_encoded["Churn_Yes"]
+y = dff["Churn"]
+X = dff.drop(["Churn","customerID"], axis=1)
 
 # Splitting data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -98,8 +142,8 @@ print(classification_report(y_test, y_pred))
 
 #       precision    recall  f1-score   
 
-#0       0.81      0.80      0.80      
-#1       0.45      0.47      0.46 
+#0       0.81      0.80      0.81      
+#1       0.46      0.47      0.46 
 
 
 # AUC score
